@@ -31,6 +31,8 @@ static result_t result = CG_INIT_VALUE;
 static uint32_t s1;
 static uint32_t s2;
 
+uint32_t enable_code_guards_##LABEL## = 0xcafebabe;
+
 /* Based on adler32 */
 static void hash_block(const uint8_t* base, size_t size)
 {
@@ -53,8 +55,13 @@ static void maintain_failed()
 
 static void ruin_failed()
 {
-  LOG("Attestation failed!\n");
-  DIABLO_START_DEGRADATION_##DEGRADATION_LABEL##();
+  if (enable_code_guards_##LABEL## == 0x4a454e53) {
+    LOG("Attestation failed!\n");
+    DIABLO_START_DEGRADATION_##DEGRADATION_LABEL##();
+  }
+  else {
+    LOG("Attestation failed! (but not degrading the program state)\n");
+  }
 }
 
 static void update_nonce_to_be_used()
@@ -63,18 +70,23 @@ static void update_nonce_to_be_used()
 
 void attestator_##LABEL##(uint32_t id)
 {
-  /* Store information about this attestation */
-  hashed_nonce_used = hash(nonce_to_be_used);
-  last_id = id;
+  if (enable_code_guards_##LABEL## == 0x4a454e53) {
+    /* Store information about this attestation */
+    hashed_nonce_used = hash(nonce_to_be_used);
+    last_id = id;
 
-  /* Get the area and attest it */
-  const Area* area = GetAreaById(data_structure_blob_##LABEL##, id);
-  result = 0;
-  s1 = 1;
-  s2 = 0;
+    /* Get the area and attest it */
+    const Area* area = GetAreaById(data_structure_blob_##LABEL##, id);
+    result = 0;
+    s1 = 1;
+    s2 = 0;
 
-  WalkArea(area, base_address_##LABEL##, hash_block, nonce_to_be_used);
-  LOG("Attestated, result: %" PRIres"\n", result);
+    WalkArea(area, base_address_##LABEL##, hash_block, nonce_to_be_used);
+    LOG("Attestated, result: %" PRIres"\n", result);
+  }
+  else {
+    LOG("Not attested because code guards are disabled\n");
+  }
 }
 
 void verifier_##LABEL##()
