@@ -17,7 +17,6 @@ import sys
 def process(input_file, output_file, aid):
   # Some initialization for commonly used variables
   codeguard_dir = os.path.dirname(sys.argv[0])# The directory that contains the python scripts and the source code that will be injected
-  attestator_src = os.path.join(codeguard_dir, 'attestator.c')
   mechanisms_dir = os.path.join(codeguard_dir, 'mechanisms')
   output_dir = os.path.dirname(output_file)
 
@@ -58,9 +57,7 @@ def process(input_file, output_file, aid):
           f_out.write('attestator_' + label + '(0);\n')
 
           # Generate the attestator for this label (if it doesn't exist already)
-          attestator_dst = os.path.join(output_dir, 'attestator_' + label + '.c')
-          if not os.path.exists(attestator_dst):
-            generate_attestator.generate(attestator_src, attestator_dst, label, degradation_label)
+          generate_attestator.generate_default(output_dir, label, degradation_label)
 
         # Match for the verifier annotation
         match = reg_verif.match(line)
@@ -71,9 +68,7 @@ def process(input_file, output_file, aid):
           f_out.write('verifier_' + label + '();\n')
 
           # Generate the attestator for this label (if it doesn't exist already)
-          attestator_dst = os.path.join(output_dir, 'attestator_' + label + '.c')
-          if not os.path.exists(attestator_dst):
-            generate_attestator.generate(attestator_src, attestator_dst, label, degradation_label)
+          generate_attestator.generate_default(output_dir, label, degradation_label)
 
   # If the file contained any annotations, copy the utils over to the output directory (unless this has already happened)
   if contains_annot and not os.path.exists(os.path.join(output_dir, 'utils.c')):

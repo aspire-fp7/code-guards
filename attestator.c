@@ -18,9 +18,11 @@
 extern void DIABLO_START_DEGRADATION_##DEGRADATION_LABEL##();
 
 /* Global variables that will be filled in by Diablo */
-const ADS* data_structure_blob_##LABEL## = (ADS*) 42;
+#pragma GCC visibility push(hidden)
+extern const result_t checksum_##LABEL##[];
+extern const ADS data_structure_blob_##LABEL##;
 uintptr_t base_address_##LABEL## = 42;
-result_t checksum_##LABEL##[1] __attribute__((section (".data.checksum"))) = { sizeof(checksum_##LABEL##[0]) };/* Will be resized by Diablo */
+#pragma GCC visibility pop
 
 /* Variables local to the file */
 static uint64_t failed = CG_INIT_VALUE;
@@ -68,7 +70,7 @@ void attestator_##LABEL##(uint32_t id)
   last_id = id;
 
   /* Get the area and attest it */
-  const Area* area = GetAreaById(data_structure_blob_##LABEL##, id);
+  const Area* area = GetAreaById(&data_structure_blob_##LABEL##, id);
   result = 0;
   s1 = 1;
   s2 = 0;
