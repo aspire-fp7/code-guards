@@ -1,13 +1,24 @@
 #!/usr/bin/python
 import argparse
+import os
 import string
+import sys
 
-# This script takes the following arguments:
-# Argument 1: Input file. The file that contains the labels we need to replace.
-# Argument 2: Output file where the labels have been replaced.
-# Argument 3: The label.
+# Generate the default attestator
+def generate_default(output_dir, label, degradation_label):
+  codeguard_dir = os.path.dirname(sys.argv[0])# The directory that contains the python scripts and the source code that will be injected
+  attestator_dst = os.path.join(output_dir, 'attestator_' + label + '.c')
+  attestator_variables_dst = os.path.join(output_dir, 'attestator_variables_' + label + '.c')
 
-def generate(input_file, output_file, label, degradation_label):
+  if not os.path.exists(attestator_dst):
+    attestator_src = os.path.join(codeguard_dir, 'attestator.c')
+    instantiate_template(attestator_src, attestator_dst, label, degradation_label)
+  if not os.path.exists(attestator_variables_dst):
+    attestator_variables_src = os.path.join(codeguard_dir, 'attestator_variables.c')
+    instantiate_template(attestator_variables_src, attestator_variables_dst, label, degradation_label)
+
+# Instantiate the template by filling in the labels in the input file and writing the new output file
+def instantiate_template(input_file, output_file, label, degradation_label):
   # Open the input and output file (the output file will be overwritten if it already exists)
   with open(input_file) as f_in:
     with open(output_file, 'w+') as f_out:
@@ -28,6 +39,6 @@ def main():
   args = parser.parse_args()
 
   # Generate the actual file
-  generate(args.input_file, args.output_file, args.label, args.degradation_label)
+  instantiate_template(args.input_file, args.output_file, args.label, args.degradation_label)
 
 if __name__ == "__main__": main()
