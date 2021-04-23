@@ -33,8 +33,6 @@ static result_t result = CG_INIT_VALUE;
 static uint32_t s1;
 static uint32_t s2;
 
-uint32_t enable_code_guards_##LABEL## = 0xcafebabe;
-
 /* Based on adler32 */
 static void hash_block(const uint8_t* base, size_t size)
 {
@@ -57,13 +55,8 @@ static void maintain_failed()
 
 static void ruin_failed()
 {
-  if (enable_code_guards_##LABEL## == 0x4a454e53) {
-    LOG("Attestation failed!\n");
-    DIABLO_START_DEGRADATION_##DEGRADATION_LABEL##();
-  }
-  else {
-    LOG("Attestation failed! (but not degrading the program state)\n");
-  }
+  LOG("Attestation failed!\n");
+  DIABLO_START_DEGRADATION_##DEGRADATION_LABEL##();
 }
 
 static void update_nonce_to_be_used()
